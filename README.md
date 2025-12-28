@@ -64,13 +64,13 @@ This guarantees:
 
 ### Webhook Service Tests
 ```bash
-docker exec -it wds-webhook-service-1 bash
+docker exec -it webhook-delivery-system-webhook-service-1 bash
 PYTHONPATH=. pytest tests/
 ```
 
 ### Downstream Service Tests
 ```bash
-docker exec -it wds-downstream-service-1 bash
+docker exec -it webhook-delivery-system-downstream-service-1 bash
 PYTHONPATH=. pytest tests/
 ```
 
