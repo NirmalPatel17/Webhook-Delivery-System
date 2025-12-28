@@ -1,0 +1,572 @@
+{
+	"info": {
+		"_postman_id": "146b9210-d3d3-4fc6-8ff6-f2eb82286ae7",
+		"name": "Webhook Delivery System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "51096086",
+		"_collection_link": "https://engisites-4402786.postman.co/workspace/ENGISITES's-Workspace~87a2cca4-20cd-426e-8f10-c23e5784b1de/collection/51096086-146b9210-d3d3-4fc6-8ff6-f2eb82286ae7?action=share&source=collection_link&creator=51096086"
+	},
+	"item": [
+		{
+			"name": "receiver",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const secret = \"59de339dde1b17c22efd5a394d8749b43b796b1303da75e29bd9ad31ff29ca3f\";\r",
+							"\r",
+							"// Raw body as string (IMPORTANT)\r",
+							"const body = pm.request.body.raw || \"\";\r",
+							"\r",
+							"// Calculate HMAC-SHA256\r",
+							"const signature = CryptoJS.HmacSHA256(body, secret).toString(CryptoJS.enc.Hex);\r",
+							"\r",
+							"// Set header\r",
+							"pm.request.headers.upsert({\r",
+							"    key: \"X-Signature\",\r",
+							"    value: signature\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Signature",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event_type\": \"order.created\",\n    \"timestamp\": \"2025-01-01T10:30:00Z\",\n    \"data\": {\n        \"order_id\": \"ORD-456\",\n        \"amount\": 10,\n        \"currency\": \"USD\"\n    },\n    \"idempotency_key\": \"568567657\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/webhooks/ingest",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"webhooks",
+						"ingest"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Batch events",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Signature",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"event_type\": \"order.created\",\n        \"event_id\": \"evt_1001\",\n        \"timestamp\": \"2025-01-01T10:30:00Z\",\n        \"data\": {\n            \"order_id\": \"ORD-123\",\n            \"amount\": 1499,\n            \"currency\": \"INR\"\n        },\n        \"idempotency_key\": \"1234567\"\n    },\n    {\n        \"event_type\": \"order.created\",\n        \"event_id\": \"evt_1001\",\n        \"timestamp\": \"2025-01-01T10:30:00Z\",\n        \"data\": {\n            \"order_id\": \"ORD-123\",\n            \"amount\": 1499,\n            \"currency\": \"INR\"\n        },\n        \"idempotency_key\": \"1234567\"\n    }\n]"
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/ingest",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"ingest"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:09:58 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "158"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "d184ca18-1aed-47f4-8d38-fbea28a6472b"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"status\": \"received\",\n        \"event_id\": \"6950f3e6ade793c996b3f55d\",\n        \"idempotent\": false\n    },\n    {\n        \"status\": \"received\",\n        \"event_id\": \"6950f3e6ade793c996b3f55d\",\n        \"idempotent\": true\n    }\n]"
+				},
+				{
+					"name": "Single event",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Signature",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_type\": \"order.created\",\n    \"timestamp\": \"2025-01-01T10:30:00Z\",\n    \"data\": {\n        \"order_id\": \"ORD-456\",\n        \"amount\": 10,\n        \"currency\": \"USD\"\n    },\n    \"idempotency_key\": \"568567657\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/ingest",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"ingest"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:09:58 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "158"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "d184ca18-1aed-47f4-8d38-fbea28a6472b"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"status\": \"received\",\n        \"event_id\": \"6950f3e6ade793c996b3f55d\",\n        \"idempotent\": false\n    },\n    {\n        \"status\": \"received\",\n        \"event_id\": \"6950f3e6ade793c996b3f55d\",\n        \"idempotent\": true\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"event_type\": \"order.created\",\r\n  \"skip\": 0,\r\n  \"limit\": 10\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/webhooks/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"webhooks",
+						"search"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Pagination",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"skip\": 0,\r\n  \"limit\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"search"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:16:36 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "3716"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "85f9c2f8-0825-4d8e-af7a-e4fe21323e37"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"data\": [\n        {\n            \"_id\": \"6950f2beade793c996b3f54a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                }\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:05:02.499000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 500,\n                    \"success\": false,\n                    \"timestamp\": \"2025-12-28 09:05:02.809000\"\n                },\n                {\n                    \"attempt_number\": 2,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:05:03.841000\"\n                }\n            ],\n            \"idempotency_key\": null,\n            \"locked_at\": \"2025-12-28 09:05:02.700000\"\n        },\n        {\n            \"_id\": \"6950f333ade793c996b3f54e\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:06:59.483000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:06:59.556000\"\n                }\n            ],\n            \"idempotency_key\": \"1234\",\n            \"locked_at\": \"2025-12-28 09:06:59.499000\"\n        },\n        {\n            \"_id\": \"6950f346ade793c996b3f550\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"12345\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:18.594000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:18.654000\"\n                }\n            ],\n            \"idempotency_key\": \"12345\",\n            \"locked_at\": \"2025-12-28 09:07:18.608000\"\n        },\n        {\n            \"_id\": \"6950f36dade793c996b3f551\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:57.959000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:58.068000\"\n                }\n            ],\n            \"idempotency_key\": \"\",\n            \"locked_at\": \"2025-12-28 09:07:57.976000\"\n        },\n        {\n            \"_id\": \"6950f398ade793c996b3f55a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"123456\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:08:40.563000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:08:40.629000\"\n                }\n            ],\n            \"idempotency_key\": \"123456\",\n            \"locked_at\": \"2025-12-28 09:08:40.577000\"\n        },\n        {\n            \"_id\": \"6950f3e6ade793c996b3f55d\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234567\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:09:58.440000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:09:58.505000\"\n                }\n            ],\n            \"idempotency_key\": \"1234567\",\n            \"locked_at\": \"2025-12-28 09:09:58.458000\"\n        },\n        {\n            \"_id\": \"6950f46bade793c996b3f55f\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-456\",\n                    \"amount\": 10,\n                    \"currency\": \"USD\"\n                },\n                \"idempotency_key\": \"568567657\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:12:11.295000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:12:11.379000\"\n                }\n            ],\n            \"idempotency_key\": \"568567657\",\n            \"locked_at\": \"2025-12-28 09:12:11.313000\"\n        }\n    ],\n    \"summary\": {\n        \"status_counts\": {\n            \"DELIVERED\": 7\n        },\n        \"event_type_counts\": {\n            \"order.created\": 7\n        },\n        \"hourly_histogram\": [\n            {\n                \"_id\": \"2025-12-28 09:00\",\n                \"count\": 7\n            }\n        ]\n    }\n}"
+				},
+				{
+					"name": "By datetime",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"from_timestamp\": \"2025-12-26T09:16:20.602Z\",\r\n  \"to_timestamp\": \"2025-12-28T09:23:59.602Z\",\r\n  \"skip\": 0,\r\n  \"limit\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"search"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:16:36 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "3716"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "85f9c2f8-0825-4d8e-af7a-e4fe21323e37"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"data\": [\n        {\n            \"_id\": \"6950f2beade793c996b3f54a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                }\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:05:02.499000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 500,\n                    \"success\": false,\n                    \"timestamp\": \"2025-12-28 09:05:02.809000\"\n                },\n                {\n                    \"attempt_number\": 2,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:05:03.841000\"\n                }\n            ],\n            \"idempotency_key\": null,\n            \"locked_at\": \"2025-12-28 09:05:02.700000\"\n        },\n        {\n            \"_id\": \"6950f333ade793c996b3f54e\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:06:59.483000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:06:59.556000\"\n                }\n            ],\n            \"idempotency_key\": \"1234\",\n            \"locked_at\": \"2025-12-28 09:06:59.499000\"\n        },\n        {\n            \"_id\": \"6950f346ade793c996b3f550\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"12345\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:18.594000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:18.654000\"\n                }\n            ],\n            \"idempotency_key\": \"12345\",\n            \"locked_at\": \"2025-12-28 09:07:18.608000\"\n        },\n        {\n            \"_id\": \"6950f36dade793c996b3f551\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:57.959000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:58.068000\"\n                }\n            ],\n            \"idempotency_key\": \"\",\n            \"locked_at\": \"2025-12-28 09:07:57.976000\"\n        },\n        {\n            \"_id\": \"6950f398ade793c996b3f55a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"123456\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:08:40.563000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:08:40.629000\"\n                }\n            ],\n            \"idempotency_key\": \"123456\",\n            \"locked_at\": \"2025-12-28 09:08:40.577000\"\n        },\n        {\n            \"_id\": \"6950f3e6ade793c996b3f55d\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234567\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:09:58.440000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:09:58.505000\"\n                }\n            ],\n            \"idempotency_key\": \"1234567\",\n            \"locked_at\": \"2025-12-28 09:09:58.458000\"\n        },\n        {\n            \"_id\": \"6950f46bade793c996b3f55f\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-456\",\n                    \"amount\": 10,\n                    \"currency\": \"USD\"\n                },\n                \"idempotency_key\": \"568567657\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:12:11.295000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:12:11.379000\"\n                }\n            ],\n            \"idempotency_key\": \"568567657\",\n            \"locked_at\": \"2025-12-28 09:12:11.313000\"\n        }\n    ],\n    \"summary\": {\n        \"status_counts\": {\n            \"DELIVERED\": 7\n        },\n        \"event_type_counts\": {\n            \"order.created\": 7\n        },\n        \"hourly_histogram\": [\n            {\n                \"_id\": \"2025-12-28 09:00\",\n                \"count\": 7\n            }\n        ]\n    }\n}"
+				},
+				{
+					"name": "By status",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"status\": \"DELIVERED\",\r\n  \"skip\": 0,\r\n  \"limit\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"search"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:16:36 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "3716"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "85f9c2f8-0825-4d8e-af7a-e4fe21323e37"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"data\": [\n        {\n            \"_id\": \"6950f2beade793c996b3f54a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                }\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:05:02.499000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 500,\n                    \"success\": false,\n                    \"timestamp\": \"2025-12-28 09:05:02.809000\"\n                },\n                {\n                    \"attempt_number\": 2,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:05:03.841000\"\n                }\n            ],\n            \"idempotency_key\": null,\n            \"locked_at\": \"2025-12-28 09:05:02.700000\"\n        },\n        {\n            \"_id\": \"6950f333ade793c996b3f54e\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:06:59.483000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:06:59.556000\"\n                }\n            ],\n            \"idempotency_key\": \"1234\",\n            \"locked_at\": \"2025-12-28 09:06:59.499000\"\n        },\n        {\n            \"_id\": \"6950f346ade793c996b3f550\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"12345\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:18.594000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:18.654000\"\n                }\n            ],\n            \"idempotency_key\": \"12345\",\n            \"locked_at\": \"2025-12-28 09:07:18.608000\"\n        },\n        {\n            \"_id\": \"6950f36dade793c996b3f551\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:57.959000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:58.068000\"\n                }\n            ],\n            \"idempotency_key\": \"\",\n            \"locked_at\": \"2025-12-28 09:07:57.976000\"\n        },\n        {\n            \"_id\": \"6950f398ade793c996b3f55a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"123456\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:08:40.563000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:08:40.629000\"\n                }\n            ],\n            \"idempotency_key\": \"123456\",\n            \"locked_at\": \"2025-12-28 09:08:40.577000\"\n        },\n        {\n            \"_id\": \"6950f3e6ade793c996b3f55d\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234567\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:09:58.440000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:09:58.505000\"\n                }\n            ],\n            \"idempotency_key\": \"1234567\",\n            \"locked_at\": \"2025-12-28 09:09:58.458000\"\n        },\n        {\n            \"_id\": \"6950f46bade793c996b3f55f\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-456\",\n                    \"amount\": 10,\n                    \"currency\": \"USD\"\n                },\n                \"idempotency_key\": \"568567657\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:12:11.295000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:12:11.379000\"\n                }\n            ],\n            \"idempotency_key\": \"568567657\",\n            \"locked_at\": \"2025-12-28 09:12:11.313000\"\n        }\n    ],\n    \"summary\": {\n        \"status_counts\": {\n            \"DELIVERED\": 7\n        },\n        \"event_type_counts\": {\n            \"order.created\": 7\n        },\n        \"hourly_histogram\": [\n            {\n                \"_id\": \"2025-12-28 09:00\",\n                \"count\": 7\n            }\n        ]\n    }\n}"
+				},
+				{
+					"name": "By event type",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"event_type\": \"order.created\",\r\n  \"skip\": 0,\r\n  \"limit\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/webhooks/search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"webhooks",
+								"search"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:16:36 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "3716"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "x-request-id",
+							"value": "85f9c2f8-0825-4d8e-af7a-e4fe21323e37"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"data\": [\n        {\n            \"_id\": \"6950f2beade793c996b3f54a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                }\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:05:02.499000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 500,\n                    \"success\": false,\n                    \"timestamp\": \"2025-12-28 09:05:02.809000\"\n                },\n                {\n                    \"attempt_number\": 2,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:05:03.841000\"\n                }\n            ],\n            \"idempotency_key\": null,\n            \"locked_at\": \"2025-12-28 09:05:02.700000\"\n        },\n        {\n            \"_id\": \"6950f333ade793c996b3f54e\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:06:59.483000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:06:59.556000\"\n                }\n            ],\n            \"idempotency_key\": \"1234\",\n            \"locked_at\": \"2025-12-28 09:06:59.499000\"\n        },\n        {\n            \"_id\": \"6950f346ade793c996b3f550\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"12345\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:18.594000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:18.654000\"\n                }\n            ],\n            \"idempotency_key\": \"12345\",\n            \"locked_at\": \"2025-12-28 09:07:18.608000\"\n        },\n        {\n            \"_id\": \"6950f36dade793c996b3f551\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:07:57.959000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:07:58.068000\"\n                }\n            ],\n            \"idempotency_key\": \"\",\n            \"locked_at\": \"2025-12-28 09:07:57.976000\"\n        },\n        {\n            \"_id\": \"6950f398ade793c996b3f55a\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"123456\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:08:40.563000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:08:40.629000\"\n                }\n            ],\n            \"idempotency_key\": \"123456\",\n            \"locked_at\": \"2025-12-28 09:08:40.577000\"\n        },\n        {\n            \"_id\": \"6950f3e6ade793c996b3f55d\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"event_id\": \"evt_1001\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-123\",\n                    \"amount\": 1499,\n                    \"currency\": \"INR\"\n                },\n                \"idempotency_key\": \"1234567\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:09:58.440000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:09:58.505000\"\n                }\n            ],\n            \"idempotency_key\": \"1234567\",\n            \"locked_at\": \"2025-12-28 09:09:58.458000\"\n        },\n        {\n            \"_id\": \"6950f46bade793c996b3f55f\",\n            \"payload\": {\n                \"event_type\": \"order.created\",\n                \"timestamp\": \"2025-01-01T10:30:00Z\",\n                \"data\": {\n                    \"order_id\": \"ORD-456\",\n                    \"amount\": 10,\n                    \"currency\": \"USD\"\n                },\n                \"idempotency_key\": \"568567657\"\n            },\n            \"status\": \"DELIVERED\",\n            \"received_at\": \"2025-12-28T09:12:11.295000\",\n            \"event_type\": \"order.created\",\n            \"delivery_attempts\": [\n                {\n                    \"attempt_number\": 1,\n                    \"http_status_code\": 200,\n                    \"success\": true,\n                    \"timestamp\": \"2025-12-28 09:12:11.379000\"\n                }\n            ],\n            \"idempotency_key\": \"568567657\",\n            \"locked_at\": \"2025-12-28 09:12:11.313000\"\n        }\n    ],\n    \"summary\": {\n        \"status_counts\": {\n            \"DELIVERED\": 7\n        },\n        \"event_type_counts\": {\n            \"order.created\": 7\n        },\n        \"hourly_histogram\": [\n            {\n                \"_id\": \"2025-12-28 09:00\",\n                \"count\": 7\n            }\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/metrics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Downstream service",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"event_type\": \"order.created\",\r\n    \"timestamp\": \"2025-01-01T10:30:00Z\",\r\n    \"data\": {\r\n        \"order_id\": \"ORD-456\",\r\n        \"amount\": 10,\r\n        \"currency\": \"USD\"\r\n    },\r\n    \"idempotency_key\": \"568567657\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/downstream/receive",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"downstream",
+						"receive"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8001/downstream/receive",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8001",
+							"path": [
+								"downstream",
+								"receive"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "nginx/1.29.4"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 28 Dec 2025 09:25:58 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "62"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"received\",\n    \"ip\": \"172.18.0.1\",\n    \"timestamp\": 1766913958\n}"
+				}
+			]
+		}
+	]
+}
